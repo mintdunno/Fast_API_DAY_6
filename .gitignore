@@ -1,10 +1,33 @@
 # Python-generated files
-__pycache__/
+
+**pycache**/
 *.py[oc]
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
-.venv
+
+.venv/
+
+# Environment variables / secrets
+
+.env
+.env.*
+
+# Testing / tooling cache
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+
+.vscode/
+.idea/
+
+# OS-generated files
+
+.DS_Store
+Thumbs.db
