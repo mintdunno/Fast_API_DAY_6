@@ -7,12 +7,12 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
+from fastapi_rebuild.core.config import settings
+
 
 class Base(DeclarativeBase):
     pass
 
-
-from fastapi_rebuild.core.config import settings
 
 engine = create_async_engine(
     settings.database_url,
