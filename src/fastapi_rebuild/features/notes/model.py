@@ -36,6 +36,11 @@ class Note(Base):
         server_default=func.now(),
     )
 
+    status: Mapped[str] = mapped_column(
+        String(20),
+        server_default="active",
+    )
+
     tags: Mapped[list["Tag"]] = relationship(
         secondary=note_tags,
         back_populates="notes",
