@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from fastapi_rebuild.core.config import settings
 from fastapi_rebuild.core.db import Base
 from fastapi_rebuild.features.notes.model import Note  # noqa: F401
+from fastapi_rebuild.features.tags.model import Tag  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
