@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from fastapi_rebuild.features.tags.schema import TagResponse
+
 
 class NoteCreate(BaseModel):
     title: str = Field(min_length=1, max_length=100)
@@ -25,6 +27,7 @@ class NoteResponse(BaseModel):
     title: str
     content: str
     created_at: datetime
+    tags: list[TagResponse]
 
     model_config = ConfigDict(from_attributes=True)
 
