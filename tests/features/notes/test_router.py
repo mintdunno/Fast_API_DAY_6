@@ -49,13 +49,13 @@ def test_list_notes(client: TestClient) -> None:
 
     assert len(body) == 2
 
-    assert body[0]["id"] == 1
+    assert body[0]["id"] == 2
     assert body[0]["title"] == "Second"
-    assert body[0]["content"] == "First"
+    assert body[0]["content"] == "Second content"
 
-    assert body[1]["id"] == 2
-    assert body[1]["title"] == "Second"
-    assert body[1]["content"] == "Second content"
+    assert body[1]["id"] == 1
+    assert body[1]["title"] == "First"
+    assert body[1]["content"] == "First content"
 
 
 def test_list_notes_empty(client: TestClient) -> None:
