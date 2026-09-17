@@ -27,3 +27,20 @@ class NoteResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class NoteListQuery(BaseModel):
+    status: str | None = None
+    title: str | None = Field(
+        default=None,
+        min_length=1,
+    )
+    limit: int = Field(
+        default=20,
+        ge=1,
+        le=100,
+    )
+    offset: int = Field(
+        default=0,
+        ge=0,
+    )

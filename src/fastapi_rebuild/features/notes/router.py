@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_rebuild.core.db import get_session
 from fastapi_rebuild.features.notes.schema import (
     NoteCreate,
+    NoteListQuery,
     NoteResponse,
     NoteUpdate,
 )
@@ -28,8 +29,17 @@ NoteServiceDep = Annotated[NoteService, Depends(get_note_service)]
 
 
 @router.get("", response_model=list[NoteResponse])
-async def list_notes(service: NoteServiceDep) -> list[NoteResponse]:
-    notes = await service.list_notes()
+async def list_notes(
+    service: NoteServiceDep,
+    query: Annotated[NoteListQuery, Query()],
+) -> list[NoteResponse]:
+    notes = await service.list_notes(
+        status=query.status,
+        title=query.title,
+        limit=query.limit,
+        offset=query.offset,
+    )
+
     return [NoteResponse.model_validate(note) for note in notes]
 
 
