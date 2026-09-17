@@ -1,21 +1,21 @@
-# tests/features/notes/test_service.py
-
 import asyncio
 
 import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import DataError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from fastapi_rebuild.features.notes.model import Note, note_tags
 from fastapi_rebuild.features.notes.schema import NoteCreate
 from fastapi_rebuild.features.notes.service import NoteService
 from fastapi_rebuild.features.tags.model import Tag
-from tests.conftest import TestSessionFactory
 
 
-def test_create_note_with_tags() -> None:
+def test_create_note_with_tags(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
     async def run_test() -> None:
-        async with TestSessionFactory() as session:
+        async with session_factory() as session:
             service = NoteService(session)
 
             note = await service.create_note_with_tags(
@@ -55,9 +55,11 @@ def test_create_note_with_tags() -> None:
     asyncio.run(run_test())
 
 
-def test_create_note_with_tags_rolls_back_on_failure() -> None:
+def test_create_note_with_tags_rolls_back_on_failure(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
     async def run_test() -> None:
-        async with TestSessionFactory() as session:
+        async with session_factory() as session:
             service = NoteService(session)
 
             data = NoteCreate(

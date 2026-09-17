@@ -52,3 +52,8 @@ def client() -> Iterator[TestClient]:
         yield test_client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def session_factory() -> async_sessionmaker[AsyncSession]:
+    return TestSessionFactory
