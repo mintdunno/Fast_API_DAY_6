@@ -50,8 +50,8 @@ def test_list_notes(client: TestClient) -> None:
     assert len(body) == 2
 
     assert body[0]["id"] == 1
-    assert body[0]["title"] == "First"
-    assert body[0]["content"] == "First content"
+    assert body[0]["title"] == "Second"
+    assert body[0]["content"] == "First"
 
     assert body[1]["id"] == 2
     assert body[1]["title"] == "Second"
@@ -278,6 +278,91 @@ def test_update_note_rejects_empty_title(client: TestClient) -> None:
         f"/notes/{created['id']}",
         json={
             "title": "",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_list_notes_filters_by_title(
+    client: TestClient,
+) -> None:
+    create_note(client, "Learn Python", "Content")
+    create_note(client, "Learn FastAPI", "Content")
+    create_note(client, "Python backend", "Content")
+
+    response = client.get(
+        "/notes",
+        params={"title": "python"},
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert [note["title"] for note in body] == [
+        "Python backend",
+        "Learn Python",
+    ]
+
+
+def test_list_notes_filters_by_status(
+    client: TestClient,
+) -> None:
+    create_note(client, "First", "Content")
+    create_note(client, "Second", "Content")
+
+    response = client.get(
+        "/notes",
+        params={"status": "active"},
+    )
+
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
+    response = client.get(
+        "/notes",
+        params={"status": "archived"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_list_notes_pagination(
+    client: TestClient,
+) -> None:
+    create_note(client, "First", "Content")
+    create_note(client, "Second", "Content")
+    create_note(client, "Third", "Content")
+    create_note(client, "Fourth", "Content")
+
+    response = client.get(
+        "/notes",
+        params={
+            "limit": 2,
+            "offset": 1,
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert [note["title"] for note in body] == [
+        "Third",
+        "Second",
+    ]
+
+
+def test_list_notes_rejects_invalid_pagination(
+    client: TestClient,
+) -> None:
+    response = client.get(
+        "/notes",
+        params={
+            "limit": 0,
+            "offset": -1,
         },
     )
 
