@@ -46,11 +46,13 @@ class NoteService:
         tag_names: list[str],
     ) -> Note:
         try:
-            note = Note(**data.model_dump())
+            note = Note(
+                **data.model_dump(),
+                tags=[],
+            )
+
             self.repository.add(note)
 
-            # dict.fromkeys removes duplicate names
-            # while preserving the original order.
             for name in dict.fromkeys(tag_names):
                 tag = await self.tag_repository.get_by_name(name)
 
@@ -60,12 +62,9 @@ class NoteService:
 
                 note.tags.append(tag)
 
-                # Send current pending SQL to PostgreSQL,
-                # but DO NOT commit the transaction.
                 await self.session.flush()
 
             await self.session.commit()
-            await self.session.refresh(note)
 
             return note
 
