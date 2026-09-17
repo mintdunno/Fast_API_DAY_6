@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from fastapi_rebuild.features.notes.model import Note
 
@@ -16,7 +17,7 @@ class NoteRepository:
         limit: int = 20,
         offset: int = 0,
     ) -> list[Note]:
-        statement = select(Note)
+        statement = select(Note).options(selectinload(Note.tags))
 
         if status is not None:
             statement = statement.where(Note.status == status)
