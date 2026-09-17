@@ -8,8 +8,33 @@ class NoteRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def list(self) -> list[Note]:
-        result = await self.session.scalars(select(Note).order_by(Note.id))
+    async def list(
+        self,
+        *,
+        status: str | None = None,
+        title: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[Note]:
+        statement = select(Note)
+
+        if status is not None:
+            statement = statement.where(Note.status == status)
+
+        if title is not None:
+            statement = statement.where(Note.title.ilike(f"%{title}%"))
+
+        statement = (
+            statement.order_by(
+                Note.created_at.desc(),
+                Note.id.desc(),
+            )
+            .limit(limit)
+            .offset(offset)
+        )
+
+        result = await self.session.scalars(statement)
+
         return list(result.all())
 
     async def get(self, note_id: int) -> Note | None:

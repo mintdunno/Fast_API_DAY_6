@@ -19,8 +19,20 @@ class NoteService:
         self.repository = NoteRepository(session)
         self.tag_repository = TagRepository(session)
 
-    async def list_notes(self) -> list[Note]:
-        return await self.repository.list()
+    async def list_notes(
+        self,
+        *,
+        status: str | None = None,
+        title: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[Note]:
+        return await self.repository.list(
+            status=status,
+            title=title,
+            limit=limit,
+            offset=offset,
+        )
 
     async def get_note(self, note_id: int) -> Note:
         note = await self.repository.get(note_id)
