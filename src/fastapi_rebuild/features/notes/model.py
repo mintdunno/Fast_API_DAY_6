@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, ForeignKey, String, Table, Text, func
+from sqlalchemy import Column, ForeignKey, Index, String, Table, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fastapi_rebuild.core.db import Base
@@ -29,9 +29,18 @@ note_tags = Table(
 class Note(Base):
     __tablename__ = "notes"
 
+    __table_args__ = (
+        Index(
+            "idx_notes_created_at_id",
+            "created_at",
+            "id",
+        ),
+    )
+
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100))
     content: Mapped[str] = mapped_column(Text)
+
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(),
     )
