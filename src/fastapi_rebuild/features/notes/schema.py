@@ -27,9 +27,12 @@ class NoteResponse(BaseModel):
     title: str
     content: str
     created_at: datetime
-    tags: list[TagResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class NoteListResponse(NoteResponse):
+    tags: list[TagResponse]
 
 
 class NoteListQuery(BaseModel):

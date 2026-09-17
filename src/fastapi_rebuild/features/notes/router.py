@@ -7,6 +7,7 @@ from fastapi_rebuild.core.db import get_session
 from fastapi_rebuild.features.notes.schema import (
     NoteCreate,
     NoteListQuery,
+    NoteListResponse,
     NoteResponse,
     NoteUpdate,
 )
@@ -28,11 +29,11 @@ def get_note_service(session: SessionDep) -> NoteService:
 NoteServiceDep = Annotated[NoteService, Depends(get_note_service)]
 
 
-@router.get("", response_model=list[NoteResponse])
+@router.get("", response_model=list[NoteListResponse])
 async def list_notes(
     service: NoteServiceDep,
     query: Annotated[NoteListQuery, Query()],
-) -> list[NoteResponse]:
+) -> list[NoteListResponse]:
     notes = await service.list_notes(
         status=query.status,
         title=query.title,
@@ -40,7 +41,7 @@ async def list_notes(
         offset=query.offset,
     )
 
-    return [NoteResponse.model_validate(note) for note in notes]
+    return [NoteListResponse.model_validate(note) for note in notes]
 
 
 @router.get("/{note_id}", response_model=NoteResponse)
