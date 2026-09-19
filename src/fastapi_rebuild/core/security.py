@@ -1,7 +1,7 @@
-from pwdlib import PasswordHash
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
+from pwdlib import PasswordHash
 
 from fastapi_rebuild.core.config import settings
 
@@ -19,4 +19,21 @@ def verify_password(
     return password_hash.verify(
         plain_password,
         hashed_password,
+    )
+
+
+def create_access_token(user_id: int) -> str:
+    expires_at = datetime.now(UTC) + timedelta(
+        minutes=settings.access_token_expire_minutes
+    )
+
+    payload = {
+        "sub": str(user_id),
+        "exp": expires_at,
+    }
+
+    return jwt.encode(
+        payload,
+        settings.jwt_secret,
+        algorithm=settings.jwt_algorithm,
     )
