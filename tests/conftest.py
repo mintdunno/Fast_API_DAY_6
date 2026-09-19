@@ -14,6 +14,7 @@ from fastapi_rebuild.core.config import settings
 from fastapi_rebuild.core.db import Base, get_session
 from fastapi_rebuild.features.notes.model import Note  # noqa: F401
 from fastapi_rebuild.features.tags.model import Tag  # noqa: F401
+from fastapi_rebuild.features.users.model import User  # noqa: F401
 from fastapi_rebuild.main import app
 
 test_engine = create_async_engine(

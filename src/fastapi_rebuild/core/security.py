@@ -7,6 +7,11 @@ from fastapi_rebuild.core.config import settings
 
 password_hash = PasswordHash.recommended()
 
+# A real hash of a throwaway value. Login verifies against this when the
+# requested account does not exist, so a failed attempt costs the same whether
+# or not the email is registered.
+dummy_password_hash = password_hash.hash("dummy-password")
+
 
 def hash_password(password: str) -> str:
     return password_hash.hash(password)
