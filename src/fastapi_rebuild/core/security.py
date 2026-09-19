@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 
-from fastapi_rebuild.config import settings
+from fastapi_rebuild.core.config import settings
 
 password_hash = PasswordHash.recommended()
 
