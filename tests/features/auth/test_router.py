@@ -210,6 +210,7 @@ def test_login_rejects_wrong_password(client: TestClient) -> None:
     response = login(client, password="wrong-password")
 
     assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
     assert response.json() == {
         "detail": "Invalid email or password",
     }
@@ -219,6 +220,7 @@ def test_login_rejects_unknown_email(client: TestClient) -> None:
     response = login(client)
 
     assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
     assert response.json() == {
         "detail": "Invalid email or password",
     }
