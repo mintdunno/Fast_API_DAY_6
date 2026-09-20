@@ -1,12 +1,15 @@
 # features/users/model.py
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fastapi_rebuild.core.db import Base
-from fastapi_rebuild.features.notes.model import Note
+
+if TYPE_CHECKING:
+    from fastapi_rebuild.features.notes.model import Note
 
 
 class User(Base):
