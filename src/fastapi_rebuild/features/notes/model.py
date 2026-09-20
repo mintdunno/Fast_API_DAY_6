@@ -5,6 +5,7 @@ from sqlalchemy import Column, ForeignKey, Index, String, Table, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fastapi_rebuild.core.db import Base
+from fastapi_rebuild.features.users.model import User
 
 if TYPE_CHECKING:
     from fastapi_rebuild.features.tags.model import Tag
@@ -49,6 +50,13 @@ class Note(Base):
         String(20),
         server_default="active",
     )
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+
+    owner: Mapped["User"] = relationship(back_populates="notes")
 
     tags: Mapped[list["Tag"]] = relationship(
         secondary=note_tags,

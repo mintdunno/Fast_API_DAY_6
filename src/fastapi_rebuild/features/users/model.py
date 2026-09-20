@@ -3,9 +3,10 @@
 from datetime import datetime
 
 from sqlalchemy import String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fastapi_rebuild.core.db import Base
+from fastapi_rebuild.features.notes.model import Note
 
 
 class User(Base):
@@ -27,3 +28,5 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(),
     )
+
+    notes: Mapped["Note"] = relationship(back_populates="owner")
