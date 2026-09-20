@@ -20,6 +20,40 @@ def create_note(
     return response.json()
 
 
+def create_auth_headers(
+    client: TestClient,
+    *,
+    email: str,
+) -> dict[str, str]:
+    password = "password123"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+
+    return {
+        "Authorization": f"Bearer {token}",
+    }
+
+
 def test_create_note(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -542,3 +576,127 @@ def test_list_notes_rejects_invalid_pagination(
     )
 
     assert response.status_code == 422
+
+
+def test_list_notes_only_returns_current_users_notes(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    create_note(
+        client,
+        auth_headers,
+        title="User A note",
+    )
+
+    user_b_headers = create_auth_headers(
+        client,
+        email="user-b@example.com",
+    )
+
+    create_note(
+        client,
+        user_b_headers,
+        title="User B note",
+    )
+
+    response = client.get(
+        "/notes",
+        headers=user_b_headers,
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert len(body) == 1
+    assert body[0]["title"] == "User B note"
+
+
+def test_cannot_get_another_users_note(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    note = create_note(
+        client,
+        auth_headers,
+        title="User A private note",
+    )
+
+    user_b_headers = create_auth_headers(
+        client,
+        email="user-b@example.com",
+    )
+
+    response = client.get(
+        f"/notes/{note['id']}",
+        headers=user_b_headers,
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "detail": "Forbidden",
+    }
+
+
+def test_cannot_update_another_users_note(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    note = create_note(
+        client,
+        auth_headers,
+        title="Original title",
+    )
+
+    user_b_headers = create_auth_headers(
+        client,
+        email="user-b@example.com",
+    )
+
+    response = client.patch(
+        f"/notes/{note['id']}",
+        json={
+            "title": "Hacked title",
+        },
+        headers=user_b_headers,
+    )
+
+    assert response.status_code == 403
+
+    owner_response = client.get(
+        f"/notes/{note['id']}",
+        headers=auth_headers,
+    )
+
+    assert owner_response.status_code == 200
+    assert owner_response.json()["title"] == "Original title"
+
+
+def test_cannot_delete_another_users_note(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    note = create_note(
+        client,
+        auth_headers,
+        title="Do not delete",
+    )
+
+    user_b_headers = create_auth_headers(
+        client,
+        email="user-b@example.com",
+    )
+
+    response = client.delete(
+        f"/notes/{note['id']}",
+        headers=user_b_headers,
+    )
+
+    assert response.status_code == 403
+
+    owner_response = client.get(
+        f"/notes/{note['id']}",
+        headers=auth_headers,
+    )
+
+    assert owner_response.status_code == 200
