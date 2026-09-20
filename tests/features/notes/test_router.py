@@ -60,7 +60,10 @@ def test_list_notes(
         "Second content",
     )
 
-    response = client.get("/notes")
+    response = client.get(
+        "/notes",
+        headers=auth_headers,
+    )
 
     assert response.status_code == 200
 
@@ -77,8 +80,14 @@ def test_list_notes(
     assert body[1]["content"] == "First content"
 
 
-def test_list_notes_empty(client: TestClient) -> None:
-    response = client.get("/notes")
+def test_list_notes_empty(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    response = client.get(
+        "/notes",
+        headers=auth_headers,
+    )
 
     assert response.status_code == 200
     assert response.json() == []
@@ -95,7 +104,10 @@ def test_get_note(
         content="My content",
     )
 
-    response = client.get(f"/notes/{created['id']}")
+    response = client.get(
+        f"/notes/{created['id']}",
+        headers=auth_headers,
+    )
 
     assert response.status_code == 200
 
@@ -107,8 +119,14 @@ def test_get_note(
     assert "created_at" in body
 
 
-def test_get_note_not_found(client: TestClient) -> None:
-    response = client.get("/notes/999")
+def test_get_note_not_found(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    response = client.get(
+        "/notes/999",
+        headers=auth_headers,
+    )
 
     assert response.status_code == 404
     assert response.json() == {
@@ -132,6 +150,7 @@ def test_update_note_title(
         json={
             "title": "New title",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -159,6 +178,7 @@ def test_update_note_content(
         json={
             "content": "New content",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -186,6 +206,7 @@ def test_update_note_multiple_fields(
             "title": "New title",
             "content": "New content",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -196,12 +217,16 @@ def test_update_note_multiple_fields(
     assert body["content"] == "New content"
 
 
-def test_update_note_not_found(client: TestClient) -> None:
+def test_update_note_not_found(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     response = client.patch(
         "/notes/999",
         json={
             "title": "Updated",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 404
@@ -221,6 +246,7 @@ def test_delete_note(
 
     response = client.delete(
         f"/notes/{created['id']}",
+        headers=auth_headers,
     )
 
     assert response.status_code == 204
@@ -228,13 +254,20 @@ def test_delete_note(
 
     response = client.get(
         f"/notes/{created['id']}",
+        headers=auth_headers,
     )
 
     assert response.status_code == 404
 
 
-def test_delete_note_not_found(client: TestClient) -> None:
-    response = client.delete("/notes/999")
+def test_delete_note_not_found(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    response = client.delete(
+        "/notes/999",
+        headers=auth_headers,
+    )
 
     assert response.status_code == 404
     assert response.json() == {
@@ -320,6 +353,7 @@ def test_update_note_rejects_null_title(
         json={
             "title": None,
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
@@ -339,6 +373,7 @@ def test_update_note_rejects_null_content(
         json={
             "content": None,
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
@@ -358,6 +393,7 @@ def test_update_note_rejects_empty_title(
         json={
             "title": "",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
@@ -391,6 +427,7 @@ def test_list_notes_filters_by_title(
         params={
             "title": "python",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -425,6 +462,7 @@ def test_list_notes_filters_by_status(
         params={
             "status": "active",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -435,6 +473,7 @@ def test_list_notes_filters_by_status(
         params={
             "status": "archived",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -476,6 +515,7 @@ def test_list_notes_pagination(
             "limit": 2,
             "offset": 1,
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -490,6 +530,7 @@ def test_list_notes_pagination(
 
 def test_list_notes_rejects_invalid_pagination(
     client: TestClient,
+    auth_headers: dict[str, str],
 ) -> None:
     response = client.get(
         "/notes",
@@ -497,6 +538,7 @@ def test_list_notes_rejects_invalid_pagination(
             "limit": 0,
             "offset": -1,
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
