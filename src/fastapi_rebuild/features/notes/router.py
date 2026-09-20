@@ -12,7 +12,10 @@ from fastapi_rebuild.features.notes.schema import (
     NoteResponse,
     NoteUpdate,
 )
-from fastapi_rebuild.features.notes.service import NoteNotFound, NoteService
+from fastapi_rebuild.features.notes.service import (
+    NoteNotFound,
+    NoteService,
+)
 from fastapi_rebuild.features.users.model import User
 
 router = APIRouter(
@@ -21,20 +24,34 @@ router = APIRouter(
 )
 
 
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
+SessionDep = Annotated[
+    AsyncSession,
+    Depends(get_session),
+]
 
 
-def get_note_service(session: SessionDep) -> NoteService:
+def get_note_service(
+    session: SessionDep,
+) -> NoteService:
     return NoteService(session)
 
 
-NoteServiceDep = Annotated[NoteService, Depends(get_note_service)]
+NoteServiceDep = Annotated[
+    NoteService,
+    Depends(get_note_service),
+]
 
 
-@router.get("", response_model=list[NoteListResponse])
+@router.get(
+    "",
+    response_model=list[NoteListResponse],
+)
 async def list_notes(
     service: NoteServiceDep,
-    query: Annotated[NoteListQuery, Query()],
+    query: Annotated[
+        NoteListQuery,
+        Query(),
+    ],
 ) -> list[NoteListResponse]:
     notes = await service.list_notes(
         status=query.status,
@@ -46,10 +63,17 @@ async def list_notes(
     return [NoteListResponse.model_validate(note) for note in notes]
 
 
-@router.get("/{note_id}", response_model=NoteResponse)
-async def get_note(note_id: int, service: NoteServiceDep) -> NoteResponse:
+@router.get(
+    "/{note_id}",
+    response_model=NoteResponse,
+)
+async def get_note(
+    note_id: int,
+    service: NoteServiceDep,
+) -> NoteResponse:
     try:
         note = await service.get_note(note_id)
+
     except NoteNotFound as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -74,20 +98,27 @@ async def create_note(
 ) -> NoteResponse:
     note = await service.create_note(
         data,
-        user_id=current_user.id,  # pyright: ignore[reportCallIssue]
+        user_id=current_user.id,
     )
 
     return NoteResponse.model_validate(note)
 
 
-@router.patch("/{note_id}", response_model=NoteResponse)
+@router.patch(
+    "/{note_id}",
+    response_model=NoteResponse,
+)
 async def update_note(
     note_id: int,
     data: NoteUpdate,
     service: NoteServiceDep,
 ) -> NoteResponse:
     try:
-        note = await service.update_note(note_id, data)
+        note = await service.update_note(
+            note_id,
+            data,
+        )
+
     except NoteNotFound as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -107,6 +138,7 @@ async def delete_note(
 ) -> None:
     try:
         await service.delete_note(note_id)
+
     except NoteNotFound as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

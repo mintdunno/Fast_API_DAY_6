@@ -8,6 +8,25 @@ from fastapi_rebuild.features.notes.model import Note, note_tags
 from fastapi_rebuild.features.notes.schema import NoteCreate
 from fastapi_rebuild.features.notes.service import NoteService
 from fastapi_rebuild.features.tags.model import Tag
+from fastapi_rebuild.features.users.model import User
+
+
+async def create_user(
+    session: AsyncSession,
+    *,
+    email: str = "owner@example.com",
+) -> User:
+    user = User(
+        email=email,
+        password_hash="test-hash",
+    )
+
+    session.add(user)
+
+    await session.commit()
+    await session.refresh(user)
+
+    return user
 
 
 def test_create_note_with_tags(
@@ -15,6 +34,8 @@ def test_create_note_with_tags(
 ) -> None:
     async def run_test() -> None:
         async with session_factory() as session:
+            user = await create_user(session)
+
             service = NoteService(session)
 
             note = await service.create_note_with_tags(
@@ -26,11 +47,13 @@ def test_create_note_with_tags(
                     "python",
                     "database",
                 ],
+                user_id=user.id,
             )
 
             note_id = note.id
 
             assert note_id is not None
+            assert note.user_id == user.id
 
             tags_result = await session.scalars(select(Tag).order_by(Tag.name))
             tags = list(tags_result.all())
@@ -61,6 +84,8 @@ def test_create_note_with_tags_rolls_back_on_failure(
 ) -> None:
     async def run_test() -> None:
         async with session_factory() as session:
+            user = await create_user(session)
+
             service = NoteService(session)
 
             call_count = 0
@@ -92,10 +117,9 @@ def test_create_note_with_tags_rolls_back_on_failure(
                         "python",
                         "database",
                     ],
+                    user_id=user.id,
                 )
 
-        # Use a completely new session to verify
-        # what actually survived in PostgreSQL.
         async with session_factory() as verify_session:
             note = await verify_session.scalar(
                 select(Note).where(Note.title == "This must rollback")

@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 def create_note(
     client: TestClient,
+    auth_headers: dict[str, str],
     title: str = "Test note",
     content: str = "Test content",
 ) -> dict:
@@ -12,19 +13,24 @@ def create_note(
             "title": title,
             "content": content,
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 201
     return response.json()
 
 
-def test_create_note(client: TestClient) -> None:
+def test_create_note(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     response = client.post(
         "/notes",
         json={
             "title": "Learn FastAPI",
             "content": "Rebuild Days 1-5",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 201
@@ -37,9 +43,22 @@ def test_create_note(client: TestClient) -> None:
     assert "created_at" in body
 
 
-def test_list_notes(client: TestClient) -> None:
-    create_note(client, "First", "First content")
-    create_note(client, "Second", "Second content")
+def test_list_notes(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    create_note(
+        client,
+        auth_headers,
+        "First",
+        "First content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Second",
+        "Second content",
+    )
 
     response = client.get("/notes")
 
@@ -65,9 +84,13 @@ def test_list_notes_empty(client: TestClient) -> None:
     assert response.json() == []
 
 
-def test_get_note(client: TestClient) -> None:
+def test_get_note(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     created = create_note(
         client,
+        auth_headers,
         title="My note",
         content="My content",
     )
@@ -93,9 +116,13 @@ def test_get_note_not_found(client: TestClient) -> None:
     }
 
 
-def test_update_note_title(client: TestClient) -> None:
+def test_update_note_title(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     created = create_note(
         client,
+        auth_headers,
         title="Old title",
         content="Original content",
     )
@@ -116,9 +143,13 @@ def test_update_note_title(client: TestClient) -> None:
     assert body["content"] == "Original content"
 
 
-def test_update_note_content(client: TestClient) -> None:
+def test_update_note_content(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     created = create_note(
         client,
+        auth_headers,
         title="Original title",
         content="Old content",
     )
@@ -138,9 +169,13 @@ def test_update_note_content(client: TestClient) -> None:
     assert body["content"] == "New content"
 
 
-def test_update_note_multiple_fields(client: TestClient) -> None:
+def test_update_note_multiple_fields(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     created = create_note(
         client,
+        auth_headers,
         title="Old title",
         content="Old content",
     )
@@ -175,15 +210,25 @@ def test_update_note_not_found(client: TestClient) -> None:
     }
 
 
-def test_delete_note(client: TestClient) -> None:
-    created = create_note(client)
+def test_delete_note(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    created = create_note(
+        client,
+        auth_headers,
+    )
 
-    response = client.delete(f"/notes/{created['id']}")
+    response = client.delete(
+        f"/notes/{created['id']}",
+    )
 
     assert response.status_code == 204
     assert response.content == b""
 
-    response = client.get(f"/notes/{created['id']}")
+    response = client.get(
+        f"/notes/{created['id']}",
+    )
 
     assert response.status_code == 404
 
@@ -197,56 +242,78 @@ def test_delete_note_not_found(client: TestClient) -> None:
     }
 
 
-def test_create_note_rejects_empty_title(client: TestClient) -> None:
+def test_create_note_rejects_empty_title(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     response = client.post(
         "/notes",
         json={
             "title": "",
             "content": "Valid content",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
 
 
-def test_create_note_rejects_title_too_long(client: TestClient) -> None:
+def test_create_note_rejects_title_too_long(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     response = client.post(
         "/notes",
         json={
             "title": "a" * 101,
             "content": "Valid content",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
 
 
-def test_create_note_rejects_empty_content(client: TestClient) -> None:
+def test_create_note_rejects_empty_content(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     response = client.post(
         "/notes",
         json={
             "title": "Valid title",
             "content": "",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
 
 
-def test_create_note_rejects_content_too_long(client: TestClient) -> None:
+def test_create_note_rejects_content_too_long(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
     response = client.post(
         "/notes",
         json={
             "title": "Valid title",
             "content": "a" * 5001,
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
 
 
-def test_update_note_rejects_null_title(client: TestClient) -> None:
-    created = create_note(client)
+def test_update_note_rejects_null_title(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    created = create_note(
+        client,
+        auth_headers,
+    )
 
     response = client.patch(
         f"/notes/{created['id']}",
@@ -258,8 +325,14 @@ def test_update_note_rejects_null_title(client: TestClient) -> None:
     assert response.status_code == 422
 
 
-def test_update_note_rejects_null_content(client: TestClient) -> None:
-    created = create_note(client)
+def test_update_note_rejects_null_content(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    created = create_note(
+        client,
+        auth_headers,
+    )
 
     response = client.patch(
         f"/notes/{created['id']}",
@@ -271,8 +344,14 @@ def test_update_note_rejects_null_content(client: TestClient) -> None:
     assert response.status_code == 422
 
 
-def test_update_note_rejects_empty_title(client: TestClient) -> None:
-    created = create_note(client)
+def test_update_note_rejects_empty_title(
+    client: TestClient,
+    auth_headers: dict[str, str],
+) -> None:
+    created = create_note(
+        client,
+        auth_headers,
+    )
 
     response = client.patch(
         f"/notes/{created['id']}",
@@ -286,14 +365,32 @@ def test_update_note_rejects_empty_title(client: TestClient) -> None:
 
 def test_list_notes_filters_by_title(
     client: TestClient,
+    auth_headers: dict[str, str],
 ) -> None:
-    create_note(client, "Learn Python", "Content")
-    create_note(client, "Learn FastAPI", "Content")
-    create_note(client, "Python backend", "Content")
+    create_note(
+        client,
+        auth_headers,
+        "Learn Python",
+        "Content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Learn FastAPI",
+        "Content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Python backend",
+        "Content",
+    )
 
     response = client.get(
         "/notes",
-        params={"title": "python"},
+        params={
+            "title": "python",
+        },
     )
 
     assert response.status_code == 200
@@ -308,13 +405,26 @@ def test_list_notes_filters_by_title(
 
 def test_list_notes_filters_by_status(
     client: TestClient,
+    auth_headers: dict[str, str],
 ) -> None:
-    create_note(client, "First", "Content")
-    create_note(client, "Second", "Content")
+    create_note(
+        client,
+        auth_headers,
+        "First",
+        "Content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Second",
+        "Content",
+    )
 
     response = client.get(
         "/notes",
-        params={"status": "active"},
+        params={
+            "status": "active",
+        },
     )
 
     assert response.status_code == 200
@@ -322,7 +432,9 @@ def test_list_notes_filters_by_status(
 
     response = client.get(
         "/notes",
-        params={"status": "archived"},
+        params={
+            "status": "archived",
+        },
     )
 
     assert response.status_code == 200
@@ -331,11 +443,32 @@ def test_list_notes_filters_by_status(
 
 def test_list_notes_pagination(
     client: TestClient,
+    auth_headers: dict[str, str],
 ) -> None:
-    create_note(client, "First", "Content")
-    create_note(client, "Second", "Content")
-    create_note(client, "Third", "Content")
-    create_note(client, "Fourth", "Content")
+    create_note(
+        client,
+        auth_headers,
+        "First",
+        "Content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Second",
+        "Content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Third",
+        "Content",
+    )
+    create_note(
+        client,
+        auth_headers,
+        "Fourth",
+        "Content",
+    )
 
     response = client.get(
         "/notes",
