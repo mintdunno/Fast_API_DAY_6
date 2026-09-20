@@ -15,3 +15,6 @@ class UserRepository:
 
     def add(self, user: User) -> None:
         self.session.add(user)
+
+    async def get(self, user_id: int) -> User | None:
+    return await self.session.get(User, user_id)
