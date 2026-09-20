@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_rebuild.core.db import get_session
+from fastapi_rebuild.features.auth.dependencies import get_current_user
 from fastapi_rebuild.features.notes.schema import (
     NoteCreate,
     NoteListQuery,
@@ -12,6 +13,7 @@ from fastapi_rebuild.features.notes.schema import (
     NoteUpdate,
 )
 from fastapi_rebuild.features.notes.service import NoteNotFound, NoteService
+from fastapi_rebuild.features.users.model import User
 
 router = APIRouter(
     prefix="/notes",
@@ -65,8 +67,16 @@ async def get_note(note_id: int, service: NoteServiceDep) -> NoteResponse:
 async def create_note(
     data: NoteCreate,
     service: NoteServiceDep,
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
 ) -> NoteResponse:
-    note = await service.create_note(data)
+    note = await service.create_note(
+        data,
+        user_id=current_user.id,  # pyright: ignore[reportCallIssue]
+    )
+
     return NoteResponse.model_validate(note)
 
 

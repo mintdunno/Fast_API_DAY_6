@@ -42,8 +42,16 @@ class NoteService:
 
         return note
 
-    async def create_note(self, data: NoteCreate) -> Note:
-        note = Note(**data.model_dump())
+    async def create_note(
+        self,
+        data: NoteCreate,
+        *,
+        user_id: int,
+    ) -> Note:
+        note = Note(
+            **data.model_dump(),
+            user_id=user_id,
+        )
 
         self.repository.add(note)
 
