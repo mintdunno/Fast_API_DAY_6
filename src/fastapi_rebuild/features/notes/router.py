@@ -13,6 +13,7 @@ from fastapi_rebuild.features.notes.schema import (
     NoteUpdate,
 )
 from fastapi_rebuild.features.notes.service import (
+    NoteForbidden,
     NoteNotFound,
     NoteService,
 )
@@ -27,6 +28,11 @@ router = APIRouter(
 SessionDep = Annotated[
     AsyncSession,
     Depends(get_session),
+]
+
+CurrentUserDep = Annotated[
+    User,
+    Depends(get_current_user),
 ]
 
 
@@ -48,12 +54,14 @@ NoteServiceDep = Annotated[
 )
 async def list_notes(
     service: NoteServiceDep,
+    current_user: CurrentUserDep,
     query: Annotated[
         NoteListQuery,
         Query(),
     ],
 ) -> list[NoteListResponse]:
     notes = await service.list_notes(
+        user_id=current_user.id,
         status=query.status,
         title=query.title,
         limit=query.limit,
@@ -70,14 +78,24 @@ async def list_notes(
 async def get_note(
     note_id: int,
     service: NoteServiceDep,
+    current_user: CurrentUserDep,
 ) -> NoteResponse:
     try:
-        note = await service.get_note(note_id)
+        note = await service.get_note(
+            note_id,
+            user_id=current_user.id,
+        )
 
     except NoteNotFound as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Note not found",
+        ) from exc
+
+    except NoteForbidden as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden",
         ) from exc
 
     return NoteResponse.model_validate(note)
@@ -91,10 +109,7 @@ async def get_note(
 async def create_note(
     data: NoteCreate,
     service: NoteServiceDep,
-    current_user: Annotated[
-        User,
-        Depends(get_current_user),
-    ],
+    current_user: CurrentUserDep,
 ) -> NoteResponse:
     note = await service.create_note(
         data,
@@ -112,17 +127,25 @@ async def update_note(
     note_id: int,
     data: NoteUpdate,
     service: NoteServiceDep,
+    current_user: CurrentUserDep,
 ) -> NoteResponse:
     try:
         note = await service.update_note(
             note_id,
             data,
+            user_id=current_user.id,
         )
 
     except NoteNotFound as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Note not found",
+        ) from exc
+
+    except NoteForbidden as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden",
         ) from exc
 
     return NoteResponse.model_validate(note)
@@ -135,12 +158,22 @@ async def update_note(
 async def delete_note(
     note_id: int,
     service: NoteServiceDep,
+    current_user: CurrentUserDep,
 ) -> None:
     try:
-        await service.delete_note(note_id)
+        await service.delete_note(
+            note_id,
+            user_id=current_user.id,
+        )
 
     except NoteNotFound as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Note not found",
+        ) from exc
+
+    except NoteForbidden as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden",
         ) from exc
