@@ -12,6 +12,7 @@ class NoteRepository:
     async def list(
         self,
         *,
+        user_id: int,
         status: str | None = None,
         title: str | None = None,
         limit: int = 20,

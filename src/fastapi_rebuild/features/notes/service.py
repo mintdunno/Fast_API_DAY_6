@@ -28,12 +28,14 @@ class NoteService:
     async def list_notes(
         self,
         *,
+        user_id: int,
         status: str | None = None,
         title: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[Note]:
         return await self.repository.list(
+            user_id=user_id,
             status=status,
             title=title,
             limit=limit,
@@ -113,8 +115,13 @@ class NoteService:
         self,
         note_id: int,
         data: NoteUpdate,
+        *,
+        user_id: int,
     ) -> Note:
-        note = await self.get_note(note_id)
+        note = await self.get_note(
+            note_id,
+            user_id=user_id,
+        )
 
         changes = data.model_dump(exclude_unset=True)
 
@@ -126,8 +133,16 @@ class NoteService:
 
         return note
 
-    async def delete_note(self, note_id: int) -> None:
-        note = await self.get_note(note_id)
+    async def delete_note(
+        self,
+        note_id: int,
+        *,
+        user_id: int,
+    ) -> None:
+        note = await self.get_note(
+            note_id,
+            user_id=user_id,
+        )
 
         await self.repository.delete(note)
         await self.session.commit()
