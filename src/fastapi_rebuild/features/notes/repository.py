@@ -17,7 +17,9 @@ class NoteRepository:
         limit: int = 20,
         offset: int = 0,
     ) -> list[Note]:
-        statement = select(Note).options(selectinload(Note.tags))
+        statement = (
+            select(Note).options(selectinload(Note.tags)).where(Note.user_id == user_id)
+        )
 
         if status is not None:
             statement = statement.where(Note.status == status)

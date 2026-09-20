@@ -13,6 +13,12 @@ class NoteNotFound(Exception):
         super().__init__(f"Note {note_id} not found")
 
 
+class NoteForbidden(Exception):
+    def __init__(self, note_id: int) -> None:
+        self.note_id = note_id
+        super().__init__(f"Access to note {note_id} is forbidden")
+
+
 class NoteService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -34,11 +40,19 @@ class NoteService:
             offset=offset,
         )
 
-    async def get_note(self, note_id: int) -> Note:
+    async def get_note(
+        self,
+        note_id: int,
+        *,
+        user_id: int,
+    ) -> Note:
         note = await self.repository.get(note_id)
 
         if note is None:
             raise NoteNotFound(note_id)
+
+        if note.user_id != user_id:
+            raise NoteForbidden(note_id)
 
         return note
 
