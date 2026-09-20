@@ -58,3 +58,28 @@ def client() -> Iterator[TestClient]:
 @pytest.fixture
 def session_factory() -> async_sessionmaker[AsyncSession]:
     return TestSessionFactory
+
+
+@pytest.fixture
+def auth_headers(client: TestClient) -> dict[str, str]:
+    client.post(
+        "/auth/register",
+        json={
+            "email": "notes@example.com",
+            "password": "password123",
+        },
+    )
+
+    response = client.post(
+        "/auth/login",
+        json={
+            "email": "notes@example.com",
+            "password": "password123",
+        },
+    )
+
+    token = response.json()["access_token"]
+
+    return {
+        "Authorization": f"Bearer {token}",
+    }

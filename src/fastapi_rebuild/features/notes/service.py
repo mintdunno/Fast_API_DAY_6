@@ -64,10 +64,13 @@ class NoteService:
         self,
         data: NoteCreate,
         tag_names: list[str],
+        *,
+        user_id: int,
     ) -> Note:
         try:
             note = Note(
                 **data.model_dump(),
+                user_id=user_id,
                 tags=[],
             )
 
