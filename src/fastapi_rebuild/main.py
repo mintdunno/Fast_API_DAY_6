@@ -6,6 +6,9 @@ from fastapi import FastAPI
 from fastapi_rebuild.core.config import settings
 from fastapi_rebuild.core.db import engine
 from fastapi_rebuild.features.auth.router import router as auth_router
+from fastapi_rebuild.features.external_posts.router import (
+    router as external_posts_router,
+)
 from fastapi_rebuild.features.notes.router import router as notes_router
 
 
@@ -27,6 +30,7 @@ app = FastAPI(
 
 app.include_router(notes_router)
 app.include_router(auth_router)
+app.include_router(external_posts_router)
 
 
 @app.get("/health")
