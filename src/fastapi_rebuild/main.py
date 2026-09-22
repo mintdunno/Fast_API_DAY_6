@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI
 
 from fastapi_rebuild.core.config import settings
@@ -10,8 +11,11 @@ from fastapi_rebuild.features.notes.router import router as notes_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.http_client = httpx.AsyncClient()
+
     yield
 
+    await app.state.http_client.aclose()
     await engine.dispose()
 
 
